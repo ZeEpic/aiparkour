@@ -1,12 +1,13 @@
 package me.zeepic.aiparkour.messaging
 
-import me.zeepic.aiparkour.times
+import me.zeepic.aiparkour.util.times
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.command.CommandSender
@@ -50,7 +51,8 @@ fun CommandSender.send(message: Component) = this.sendMessage(
         .hoverText("Server Message")
 )
 
-
 fun CommandSender.send(text: String) {
     this.send(text.component)
 }
+
+fun log(message: String) = Bukkit.getLogger().info(message)

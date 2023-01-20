@@ -1,4 +1,4 @@
-package me.zeepic.aiparkour
+package me.zeepic.aiparkour.util
 
 import java.text.SimpleDateFormat
 import java.time.Duration

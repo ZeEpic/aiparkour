@@ -1,5 +1,6 @@
-package me.zeepic.aiparkour
+package me.zeepic.aiparkour.util
 
+import me.zeepic.aiparkour.AIParkour
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import java.util.*

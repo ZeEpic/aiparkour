@@ -1,5 +1,6 @@
-package me.zeepic.aiparkour
+package me.zeepic.aiparkour.util
 
+import me.zeepic.aiparkour.AIParkour
 import java.util.*
 
 fun randomBool() = AIParkour.random.nextBoolean()

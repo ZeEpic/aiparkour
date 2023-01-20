@@ -2,12 +2,15 @@ package me.zeepic.aiparkour
 
 import me.zeepic.aiparkour.commands.CommandParser
 import me.zeepic.aiparkour.commands.CommandResult
-import me.zeepic.aiparkour.commands.KCommand
+import me.zeepic.aiparkour.levels.LevelSerializer
+import me.zeepic.aiparkour.util.now
 import org.bukkit.Bukkit
+import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import org.reflections.Reflections
 import java.util.*
-import kotlin.reflect.jvm.kotlinFunction
+
+annotation class EventListener
 
 class AIParkour : JavaPlugin() {
 
@@ -15,18 +18,21 @@ class AIParkour : JavaPlugin() {
         instance = this
 
         val commandsReflection = Reflections("me.zeepic.aiparkour.commands")
-        val commandClasses = commandsReflection.getMethodsReturn(CommandResult::class.java)
-        commandClasses
-            .map { it.kotlinFunction }
-            .filterIsInstance<KCommand>()
-            .filter(CommandParser::isCommand)
-            .map(CommandParser::convertToBukkit)
-            .forEach {
-                CommandParser.aliases += it.name
-                CommandParser.aliases.addAll(it.aliases)
-                server.commandMap.register("parkour", it)
-                 Bukkit.getLogger().info("Registered command \"/${it.function.name}\" with permission \"${it.permission}\".")
-            }
+        val commandFunctions = commandsReflection.getMethodsReturn(CommandResult::class.java)
+        CommandParser.generateCommandMap(commandFunctions, server)
+
+        LevelSerializer.loadLevels()
+
+        val rootReflection = Reflections("me.zeepic.aiparkour")
+        val eventListeners = rootReflection.getTypesAnnotatedWith(EventListener::class.java)
+        eventListeners.forEach {
+            server.pluginManager.registerEvents(it.getConstructor().newInstance() as Listener, this)
+        }
+
+    }
+
+    override fun onDisable() {
+        LevelSerializer.saveLevels()
     }
 
     companion object {

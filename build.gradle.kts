@@ -16,6 +16,7 @@ dependencies {
     implementation("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT")
     implementation(kotlin("reflect"))
     implementation("org.reflections:reflections:0.10.2")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 tasks {
