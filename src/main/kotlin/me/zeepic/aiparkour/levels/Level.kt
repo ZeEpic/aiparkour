@@ -1,6 +1,7 @@
 package me.zeepic.aiparkour.levels
 
 import me.zeepic.aiparkour.messaging.send
+import me.zeepic.aiparkour.metadata.PlayerMeta
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Sound
@@ -22,11 +23,15 @@ data class Level(
     }
 
     fun teleport(player: Player) {
-        player.teleport(start)
-        player.send(" ")
-        player.send("&6&9Entering \"$name\" &7&o-&6&o by $creator")
-        player.send(" ")
-        player.playSound(player.location, Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f)
+        with (player) {
+            teleport(start)
+            send(" ")
+            send("&6&9Entering \"$name\" &7&o-&6&o by $creator")
+            send(" ")
+            playSound(this.location, Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f)
+            PlayerMeta.resetLevelStartTime(this)
+            PlayerMeta.setLevel(this, name)
+        }
     }
 
     companion object {

@@ -74,7 +74,6 @@ class FunctionCommand(name: String, val function: KCommand, description: String 
                 true
             }
             CommandResult.SILENT_FAILURE -> true
-            else -> true
         }
     }
 

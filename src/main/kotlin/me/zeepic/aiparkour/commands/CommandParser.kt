@@ -1,7 +1,6 @@
 package me.zeepic.aiparkour.commands
 
 import me.zeepic.aiparkour.messaging.log
-import org.bukkit.Bukkit
 import org.bukkit.Server
 import java.lang.reflect.Method
 import kotlin.reflect.KFunction
@@ -15,7 +14,7 @@ object CommandParser {
     private val aliases = mutableListOf<String>()
 
     private fun isCommand(command: KCommand)
-        = command.name.endsWith("Command") && command.annotations.any { it is Command }
+        = command.name.endsWith("Command") && command.annotations.any { it is Command } && command.returnType == CommandResult::class
 
     private fun getParameterUsage(parameter: KParameter): String {
         if (parameter.isOptional || parameter.type.isMarkedNullable) {
@@ -37,6 +36,8 @@ object CommandParser {
     }
 
     fun generateCommandMap(commandFunctions: Set<Method>, server: Server) {
+        log("Generating command map...")
+        log("Found ${commandFunctions.size} command functions, first one being named ${commandFunctions.first().name}.")
         commandFunctions
             .map { it.kotlinFunction }
             .filterIsInstance<KCommand>()
