@@ -21,12 +21,21 @@ import kotlin.reflect.KParameter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-class FunctionCommand(name: String, val function: KCommand, description: String = "", usage: String = "", aliases: List<String> = listOf()) : BukkitCommand(name, description, usage, aliases) {
+class FunctionCommand(name: String, val function: KCommand, permission: String = "", description: String = "", usage: String = "", aliases: List<String> = listOf()) : BukkitCommand(name, description, usage, aliases) {
+
+    init {
+        this.permission = permission
+    }
 
     private fun getArgError(index: Int, badArg: String, requirement: String, note: String = "")
         = "&cIncorrect usage! &7&oFor argument #${index + 1} you provided \"$badArg\", but $requirement was required. $note"
 
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>?): Boolean {
+        if (!testPermission(sender)) {
+            sender.send("&cYou do not have permission to use this command!")
+            return true
+        }
+
         var argStack = args?.toMutableList() ?: mutableListOf()
         val argList = args?.toList() ?: listOf()
         val params = mutableMapOf<KParameter, Any?>()

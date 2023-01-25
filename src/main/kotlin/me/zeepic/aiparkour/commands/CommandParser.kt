@@ -13,7 +13,7 @@ object CommandParser {
 
     private val aliases = mutableListOf<String>()
 
-    private fun isCommand(command: KCommand)
+    fun isCommand(command: KCommand)
         = command.name.endsWith("Command") && command.annotations.any { it is Command } && command.returnType == CommandResult::class
 
     private fun getParameterUsage(parameter: KParameter): String {
@@ -29,6 +29,7 @@ object CommandParser {
         return FunctionCommand(
             annotation.name,
             command,
+            annotation.permission,
             annotation.description,
             usage,
             annotation.aliases.toList()

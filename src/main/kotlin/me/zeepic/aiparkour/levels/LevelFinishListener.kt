@@ -1,6 +1,6 @@
 package me.zeepic.aiparkour.levels
 
-import me.zeepic.aiparkour.EventListener
+import me.zeepic.aiparkour.util.EventListener
 import me.zeepic.aiparkour.messaging.send
 import me.zeepic.aiparkour.metadata.PlayerMeta
 import me.zeepic.aiparkour.util.readableTimeLength
@@ -24,4 +24,5 @@ class LevelFinishListener : Listener {
         val level = Level.random()
         level.teleport(player)
     }
+
 }
