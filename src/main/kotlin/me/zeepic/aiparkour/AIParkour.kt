@@ -1,5 +1,6 @@
 package me.zeepic.aiparkour
 
+import me.zeepic.aiparkour.commands.ArgumentParser
 import me.zeepic.aiparkour.commands.CommandGroup
 import me.zeepic.aiparkour.commands.CommandParser
 import me.zeepic.aiparkour.levels.LevelSerializer
@@ -21,6 +22,8 @@ class AIParkour : JavaPlugin() {
         shortName = this.name.lowercase()
 
         val reflection = Reflections(AIParkour::class.java.packageName)
+
+        reflection.getSubTypesOf(ArgumentParser::class.java).forEach(CommandParser::registerArgumentParser)
 
         val methods = reflection
             .getTypesAnnotatedWith(CommandGroup::class.java)

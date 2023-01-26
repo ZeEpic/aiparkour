@@ -2,7 +2,7 @@ package me.zeepic.aiparkour.commands
 
 import me.zeepic.aiparkour.AIParkour
 import me.zeepic.aiparkour.messaging.log
-import org.bukkit.Bukkit
+import me.zeepic.aiparkour.util.anyNull
 import org.bukkit.Server
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
@@ -19,6 +19,11 @@ typealias KCommand = KFunction<CommandResult>
 object CommandParser {
 
     private val aliases = mutableListOf<String>()
+    private val argumentParsers = mutableListOf<ArgumentParser<*>>()
+
+    fun registerArgumentParser(parser: Class<out ArgumentParser<*>>) {
+        argumentParsers.add(parser.getConstructor().newInstance())
+    }
 
     private fun isCommand(command: KCommand)
         = command.name.endsWith("Command") && command.annotations.any { it is Command }
@@ -28,7 +33,6 @@ object CommandParser {
             return "[${parameter.name}]"
         }
         return "<${parameter.name}>"
-
     }
 
     private fun convertToBukkit(command: KCommand, group: KClass<out Any>): FunctionCommand {
@@ -36,9 +40,14 @@ object CommandParser {
         val groupAnnotation = group.annotations.firstOrNull { it is CommandGroup } as? CommandGroup ?: CommandGroup("")
         val parameters = command.parameters.drop(2).joinToString(" ", transform = ::getParameterUsage)
         val usage = "/${annotation.name}${if (parameters.isNotEmpty()) " " else ""}$parameters"
+        val parsers = command.parameters.drop(1).associateWith { argumentParsers.firstOrNull { parser -> parser.type == it.type } }
+        if (parsers.values.anyNull()) {
+            throw Exception("An error occurred while generating the command, because a class without a valid parser was used in the function definition.")
+        }
         return FunctionCommand(
             annotation.name,
             command,
+            parsers.mapValues { it.value!! },
             AIParkour.shortName + "." + groupAnnotation.permission,
             annotation.description,
             usage,
@@ -69,4 +78,8 @@ object CommandParser {
                 log("Registered command \"/$fallbackPrefix:${it.usage.drop(1)}\" with permission \"${it.permission}\".")
             }
     }
+
+    fun getArgError(index: Int, badArg: String, requirement: String, note: String = "")
+            = "&cIncorrect usage! &7&oFor argument #${index + 1} you provided \"$badArg\", but $requirement was required. $note"
+
 }
