@@ -1,5 +1,6 @@
 package me.zeepic.aiparkour.messaging
 
+import me.zeepic.aiparkour.AIParkour
 import me.zeepic.aiparkour.util.times
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
@@ -44,15 +45,31 @@ val Location.component
         .hoverText("Click to teleport!")
         .clickEvent(ClickEvent.runCommand("/tp ${this.x} ${this.y} ${this.z}"))
 
-fun CommandSender.send(message: Component) = this.sendMessage(
-    "&3A&bI &6Parkour &7➮ &f"
-        .component
-        .append(message)
-        .hoverText("Server Message")
-)
+operator fun Component.plus(other: Component) = this.append(other)
 
-fun CommandSender.send(text: String) {
-    this.send(text.component)
+operator fun Collection<Component>.plus(other: Component): List<Component> {
+    val mut = this.toMutableList()
+    mut += other
+    return mut.toList()
 }
 
-fun log(message: String) = Bukkit.getLogger().info(message)
+fun Collection<Component>.join() = this.reduce { acc, component -> acc + component }
+
+fun <M> CommandSender.send(message: M) {
+    val component = if (message is Component) message
+                  else message.toString().component
+    this.sendMessage(
+        AIParkour.messagePrefix
+            .append(component)
+            .hoverText("Server Message")
+    )
+}
+
+fun <M> log(message: M) = Bukkit.getLogger().info(message.toString())
+
+fun <M> broadcast(message: M) {
+    Bukkit.broadcast(
+        if (message is Component) message
+        else message.toString().component
+    )
+}

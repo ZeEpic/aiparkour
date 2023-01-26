@@ -3,6 +3,7 @@ package me.zeepic.aiparkour
 import me.zeepic.aiparkour.commands.CommandGroup
 import me.zeepic.aiparkour.commands.CommandParser
 import me.zeepic.aiparkour.levels.LevelSerializer
+import me.zeepic.aiparkour.messaging.component
 import me.zeepic.aiparkour.util.EventListener
 import me.zeepic.aiparkour.util.now
 import org.bukkit.Bukkit
@@ -10,7 +11,6 @@ import org.bukkit.GameRule.*
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import org.reflections.Reflections
-import me.zeepic.aiparkour.util.fold
 import java.util.*
 
 
@@ -18,14 +18,14 @@ class AIParkour : JavaPlugin() {
 
     override fun onEnable() {
         instance = this
+        shortName = this.name.lowercase()
 
-        val reflection = Reflections(AIParkour::class.qualifiedName)
+        val reflection = Reflections(AIParkour::class.java.packageName)
 
-        val classes = reflection.getTypesAnnotatedWith(CommandGroup::class.java)
-            .map { it.methods.toList() }
-            .fold()
-            .toSet()
-        CommandParser.generateCommandMap(classes, server)
+        val methods = reflection
+            .getTypesAnnotatedWith(CommandGroup::class.java)
+            .associate { it.kotlin to it.methods.toList() }
+        CommandParser.generateCommandMap(methods, server)
 
         saveResource("levels.txt", false)
         LevelSerializer.loadLevels()
@@ -65,7 +65,9 @@ class AIParkour : JavaPlugin() {
     }
 
     companion object {
+        val messagePrefix = "&3A&bI &6Parkour &7➮ &f".component
         lateinit var instance: AIParkour
+        lateinit var shortName: String
 
         fun runAsync(runnable: () -> Unit) {
             Bukkit.getScheduler().runTaskAsynchronously(instance, runnable)

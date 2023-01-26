@@ -1,4 +1,4 @@
-package me.zeepic.aiparkour.util
+package me.zeepic.aiparkour.players
 
 import me.zeepic.aiparkour.AIParkour
 import org.bukkit.Bukkit

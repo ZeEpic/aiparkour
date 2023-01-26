@@ -1,6 +1,6 @@
 package me.zeepic.aiparkour.commands
 
-import me.zeepic.aiparkour.util.OfflineManager
+import me.zeepic.aiparkour.players.OfflineManager
 import me.zeepic.aiparkour.util.anyNull
 import me.zeepic.aiparkour.messaging.component
 import me.zeepic.aiparkour.messaging.send
