@@ -1,15 +1,14 @@
 package me.zeepic.aiparkour.levels
 
-import me.zeepic.aiparkour.util.EventListener
+import api.EventListener
+import api.helpers.readableTimeLength
 import me.zeepic.aiparkour.messaging.send
 import me.zeepic.aiparkour.metadata.PlayerMeta
-import me.zeepic.aiparkour.util.readableTimeLength
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerMoveEvent
-import kotlin.time.Duration.Companion.milliseconds
 
 @EventListener
 class LevelFinishListener : Listener {
@@ -17,11 +16,17 @@ class LevelFinishListener : Listener {
     fun onLevelFinish(event: PlayerMoveEvent) {
         val player = event.player
         val block = player.location.block
-        if (block.type != Material.HEAVY_WEIGHTED_PRESSURE_PLATE) return
+        if (block.type != Material.LIGHT_WEIGHTED_PRESSURE_PLATE) return
         if (block.getRelative(BlockFace.DOWN).type != Material.GOLD_BLOCK) return
-        val minutes = PlayerMeta.timeSinceLevelStarted(player).milliseconds.inWholeMinutes
-        player.send("&7You finished &3${PlayerMeta.level(player)} &7in &3${minutes.readableTimeLength()}&7.")
-        val level = Level.random()
+        if (PlayerMeta.level(player) == "N/A") return
+        val time = PlayerMeta.timeSinceLevelStarted(player).readableTimeLength()
+        PlayerMeta.increaseStreak(player)
+        val streak = PlayerMeta.streak(player)
+        player.send("&7Completed &3${PlayerMeta.level(player)} &7in &3$time&7 &8(level $streak).")
+        if (streak > PlayerMeta.highestStreak(player)) {
+            PlayerMeta.setHighestStreak(player, streak)
+        }
+        val level = Level.random(player)
         level.teleport(player)
     }
 

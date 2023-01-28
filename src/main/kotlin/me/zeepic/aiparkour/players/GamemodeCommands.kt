@@ -1,8 +1,8 @@
 package me.zeepic.aiparkour.players
 
-import me.zeepic.aiparkour.commands.Command
-import me.zeepic.aiparkour.commands.CommandGroup
-import me.zeepic.aiparkour.commands.CommandResult
+import api.commands.Command
+import api.commands.CommandGroup
+import api.commands.CommandResult
 import me.zeepic.aiparkour.messaging.send
 import org.bukkit.GameMode
 import org.bukkit.entity.Player

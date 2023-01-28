@@ -1,17 +1,28 @@
 package me.zeepic.aiparkour
 
-import me.zeepic.aiparkour.commands.ArgumentParser
-import me.zeepic.aiparkour.commands.CommandGroup
-import me.zeepic.aiparkour.commands.CommandParser
+import api.EventListener
+import api.commands.ArgumentParser
+import api.commands.CommandGroup
+import api.commands.CommandParser
+import api.commands.Parser
+import api.helpers.color
+import api.helpers.now
+import api.helpers.typesAnnotatedWith
+import api.helpers.unbreakable
+import api.tasks.Task
+import me.zeepic.aiparkour.levels.Level
 import me.zeepic.aiparkour.levels.LevelSerializer
 import me.zeepic.aiparkour.messaging.component
-import me.zeepic.aiparkour.util.EventListener
-import me.zeepic.aiparkour.util.now
-import org.bukkit.Bukkit
+import me.zeepic.aiparkour.messaging.send
+import me.zeepic.aiparkour.metadata.PlayerMeta
+import org.bukkit.*
 import org.bukkit.GameRule.*
+import org.bukkit.entity.Player
 import org.bukkit.event.Listener
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import org.reflections.Reflections
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 import java.util.*
 
 
@@ -20,21 +31,30 @@ class AIParkour : JavaPlugin() {
     override fun onEnable() {
         instance = this
         shortName = this.name.lowercase()
+        lobbyLocation = Location(Bukkit.getWorld("world"), 0.5, 65.0, 0.5)
 
-        val reflection = Reflections(AIParkour::class.java.packageName)
+        typesAnnotatedWith<ArgumentParser<*>>(Parser::class)
+            .forEach(CommandParser::registerArgumentParser)
 
-        reflection.getSubTypesOf(ArgumentParser::class.java).forEach(CommandParser::registerArgumentParser)
-
-        val methods = reflection
-            .getTypesAnnotatedWith(CommandGroup::class.java)
+        val methods = typesAnnotatedWith<Any>(CommandGroup::class)
             .associate { it.kotlin to it.methods.toList() }
         CommandParser.generateCommandMap(methods, server)
 
-        saveResource("levels.txt", false)
+        if (!dataFolder.exists()) dataFolder.mkdir()
+        if (!LevelSerializer.levelsFile().exists()) LevelSerializer.levelsFile().createNewFile()
         LevelSerializer.loadLevels()
-        val eventListeners = reflection.getTypesAnnotatedWith(EventListener::class.java)
-        eventListeners.forEach {
-            server.pluginManager.registerEvents(it.getConstructor().newInstance() as Listener, this)
+
+        typesAnnotatedWith<Listener>(EventListener::class).forEach {
+            server.pluginManager.registerEvents(it.getConstructor().newInstance(), this)
+        }
+
+        typesAnnotatedWith<Runnable>(Task::class).forEach {
+            server.scheduler.runTaskTimer(
+                this,
+                it.getConstructor().newInstance(),
+                0L,
+                (it.getAnnotation(Task::class.java).periodSeconds * 20).toLong()
+            )
         }
 
         val world = server.worlds.first()
@@ -68,12 +88,23 @@ class AIParkour : JavaPlugin() {
     }
 
     companion object {
-        val messagePrefix = "&3A&bI &6Parkour &7➮ &f".component
+        val messagePrefix = "&3AI &bParkour &7➮ &f".component
         lateinit var instance: AIParkour
         lateinit var shortName: String
 
-        fun runAsync(runnable: () -> Unit) {
-            Bukkit.getScheduler().runTaskAsynchronously(instance, runnable)
+        lateinit var lobbyLocation: Location
+
+        fun beginParkour(player: Player) {
+            val level = Level.random(player)
+            PlayerMeta.resetLives(player)
+
+            level.teleport(player)
+            player.gameMode = GameMode.ADVENTURE
+            player.addPotionEffect(PotionEffect(PotionEffectType.INVISIBILITY, 999999, 1, false, false))
+            player.inventory.boots = ItemStack(Material.LEATHER_BOOTS)
+                .unbreakable()
+                .color(Color.fromRGB(20, 200,  30))
+            player.send("&aParkour started! &7&oDon't fall!")
         }
 
         val random = Random(now())

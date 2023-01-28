@@ -1,6 +1,6 @@
 package me.zeepic.aiparkour.players
 
-import me.zeepic.aiparkour.AIParkour
+import api.tasks.runAsync
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import java.util.*
@@ -10,7 +10,7 @@ object OfflineManager {
 
     fun getOfflinePlayer(name: String, callback: (OfflinePlayer?) -> Unit) {
         if (name in offlinePlayerCache) return callback(Bukkit.getOfflinePlayer(offlinePlayerCache[name]!!))
-        AIParkour.runAsync {
+        runAsync {
             val offlinePlayer = Bukkit.getOfflinePlayer(name)
             if (offlinePlayer.hasPlayedBefore()) {
                 offlinePlayerCache[name] = offlinePlayer.uniqueId

@@ -1,54 +1,79 @@
 package me.zeepic.aiparkour.levels
 
+import api.helpers.random
+import me.zeepic.aiparkour.AIParkour
+import me.zeepic.aiparkour.messaging.color
+import me.zeepic.aiparkour.messaging.hoverText
 import me.zeepic.aiparkour.messaging.send
 import me.zeepic.aiparkour.metadata.PlayerMeta
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Sound
 import org.bukkit.entity.Player
-import java.util.UUID
+import java.util.*
 
 data class Level(
     val creator: UUID,
     val name: String,
-    val start: Location
+    val start: Location,
+    val creationDate: Long
 ) {
 
-    fun serialize(): Map<String, String> {
-        return mapOf(
-            "creator" to creator.toString(),
-            "name" to name,
-            "start" to start.serialize().values.joinToString()
-        )
+    fun serialize(): String {
+        return listOf(
+            creator.toString(),
+            name,
+            start.serialize().values.joinToString(";"),
+            creationDate.toString()
+        ).joinToString(" \\\\ ")
     }
 
     fun teleport(player: Player) {
         with (player) {
             teleport(start)
-            send(" ")
-            send("&6&9Entering \"$name\" &7&o-&6&o by $creator")
-            send(" ")
-            playSound(this.location, Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f)
+            sendMessage(" ")
+            send("&aEntering &7\"&o${this@Level.name}&7\"")
+            sendMessage("&f                     &6✎ &o${Bukkit.getOfflinePlayer(creator).name}".color().hoverText("Author"))
+            sendMessage(" ")
+            if (PlayerMeta.streak(player) % 10 == 0) {
+                playSound(this, Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.75f)
+            } else {
+                playSound(this, Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f)
+            }
             PlayerMeta.resetLevelStartTime(this)
-            PlayerMeta.setLevel(this, name)
+            PlayerMeta.setLevel(this, this@Level.name)
         }
     }
 
     companion object {
-        private fun fromParts(parts: List<String>)
-                = Location(Bukkit.getWorld(parts[0]), parts[1].toDouble(), parts[2].toDouble(), parts[3].toDouble())
 
-        fun deserialize(map: Map<String, String>): Level {
+        fun deserialize(level: String): Level {
+            val (creator, name, start, creationDate) = level.split(" \\\\ ")
+            val (world, x, y, z, yaw, pitch) = start.split(";")
             return Level(
-                UUID.fromString(map["creator"]!!),
-                map["name"]!!,
-                fromParts(map["start"]!!.split(", "))
+                UUID.fromString(creator),
+                name,
+                Location(Bukkit.getWorld(world), x.toDouble(), y.toDouble(), z.toDouble(), pitch.toFloat(), yaw.toFloat()),
+                creationDate.toLong()
             )
         }
 
-        fun random(): Level {
-            return levels.random()
+        fun random(player: Player): Level {
+            val previousLevel = fromName(PlayerMeta.level(player))
+            if (previousLevel != null) {
+                levels -= previousLevel
+            }
+            val randomLevel = levels.random(AIParkour.random)
+            if (previousLevel != null) {
+                levels += previousLevel
+            }
+            return randomLevel
         }
+
+        fun fromName(name: String)
+            = levels.firstOrNull { it.name.equals(name, ignoreCase = true) }
 
     }
 }
+
+private operator fun <E> List<E>.component6() = get(5)

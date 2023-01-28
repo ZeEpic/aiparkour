@@ -7,12 +7,12 @@ val levels = mutableListOf<Level>()
 
 object LevelSerializer {
 
-    private fun levelsFile()
+    fun levelsFile()
         = File(AIParkour.instance.dataFolder, "levels.txt")
 
     fun saveLevels() {
         levelsFile().writeText(
-            levels.joinToString("\n") { it.serialize().values.joinToString(" ") }
+            levels.joinToString("\n", transform = Level::serialize)
         )
     }
 
@@ -21,8 +21,7 @@ object LevelSerializer {
             levelsFile().readText()
                 .split("\n")
                 .filter { it.isNotBlank() }
-                .map { it.split(" ") }
-                .map { Level.deserialize(mapOf("creator" to it[0], "name" to it[1], "start" to it[2])) }
+                .map { Level.deserialize(it) }
         )
     }
 

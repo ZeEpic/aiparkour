@@ -1,7 +1,7 @@
 package me.zeepic.aiparkour.messaging
 
+import api.helpers.times
 import me.zeepic.aiparkour.AIParkour
-import me.zeepic.aiparkour.util.times
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -19,7 +19,7 @@ fun String.title()
 
 fun String.withoutColor() = LegacyComponentSerializer.legacySection().deserialize(this).serialize()
 
-fun String.color() = LegacyComponentSerializer.legacy('&').deserialize(this).serialize()
+fun String.color() = LegacyComponentSerializer.legacyAmpersand().deserialize(this)
 
 fun String.enumNameTitle() = lowercase().replace("_"," ").title()
 
@@ -33,7 +33,8 @@ fun String.pad(amount: Int) = (" " * amount) + this + (" " * amount)
 
 fun Component.serialize() = PlainTextComponentSerializer.plainText().serialize(this)
 
-val String.component get() = Component.text(this.color())
+val String.component get() = this.color()
+
 fun String.component(color: NamedTextColor) = this.component.color(color)
 
 fun Component.hoverText(text: String)
@@ -41,9 +42,9 @@ fun Component.hoverText(text: String)
 
 val Location.component
     get() = "(${this.blockX}, ${this.blockY}, ${this.blockZ})"
-        .component(NamedTextColor.BLUE)
+        .component
         .hoverText("Click to teleport!")
-        .clickEvent(ClickEvent.runCommand("/tp ${this.x} ${this.y} ${this.z}"))
+        .clickEvent(ClickEvent.runCommand("/tp @s ${this.x} ${this.y} ${this.z} ${this.yaw} ${this.pitch}"))
 
 operator fun Component.plus(other: Component) = this.append(other)
 
